@@ -6,7 +6,6 @@ public abstract class Singleton<T> : MonoBehaviour where T : Singleton<T>
 {
     private static T _instance;
 
-
     public static T Instance
     {
         get
@@ -26,7 +25,7 @@ public abstract class Singleton<T> : MonoBehaviour where T : Singleton<T>
     /// </summary>
     protected void Awake()
     {
-        if (_instance != null && _instance != this)
+        if (_instance != null && _instance != this) // Finds if there is more than one instance of this singleton
         {
             Debug.LogError("More than 1 instance of " + typeof(T) + " found in GameObject " + gameObject.name + ". " + typeof(T) + " is a singleton and only 1 instance is allowed.");
         }

@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class CollisionHandler : MonoBehaviour
+public class StarCollisionHandler : MonoBehaviour
 {
     private Pickup pickup;
     private float destroyTimer = 3.0f;
@@ -37,13 +37,20 @@ public class CollisionHandler : MonoBehaviour
     }
 
 
+    private void CollisionResponse()
+    {
+        SubscribeToEvents();
+        pickup.GetPickedUp();
+        GameManager.Instance.PlayerManager.UpdateItemsCounter(1);
+        Destroy(gameObject, destroyTimer);
+    }
+
+
     private void OnTriggerEnter(Collider other)
     {
         if (other.CompareTag("Player"))
         {
-            SubscribeToEvents();
-            pickup.GetPickedUp();
-            Destroy(gameObject, destroyTimer);
+            CollisionResponse();
         }
     }
 }

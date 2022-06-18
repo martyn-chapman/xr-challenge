@@ -38,6 +38,7 @@ public class PlayerController : MonoBehaviour
     // Frame-rate independent update call
     void FixedUpdate()
     {
-        MovePlayer();
+        if (GameManager.Instance.GameState == GameManager.GameStates.Play)
+            MovePlayer();
     }
 }
