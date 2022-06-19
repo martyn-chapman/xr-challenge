@@ -14,7 +14,7 @@ public class UI_Manager : Singleton<UI_Manager>
     }
 
 
-    private void OnDestroy()
+    private void OnDisable()
     {
         GameManager.Instance.OnGameStateChanged -= GameManagerOnGameStateChanged;
     }

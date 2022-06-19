@@ -6,11 +6,13 @@ using UnityEngine.InputSystem;
 public class PlayerController : MonoBehaviour
 {
     // Variables exposed to Editor
-    [Header("Input Settings")]
-    [SerializeField] [Tooltip("Speed in m/s")] [Range(1f,10f)] private float speed = 1f;
+    [Header("Movement Settings")]
+    [SerializeField] [Tooltip("Speed in m/s")] [Range(1f,10f)] private float speed;
+    [SerializeField] [Tooltip("How quickly the character rotates when receiving a new movement direction")] private float rotationSpeed;
 
     // Private variables
     private Rigidbody rigidBody;
+    private Animator animator;
     private Vector2 movementVector2D;
 
 
@@ -18,6 +20,7 @@ public class PlayerController : MonoBehaviour
     void Start()
     {
         rigidBody = GetComponent<Rigidbody>();
+        animator = GetComponent<Animator>();
     }
 
 
@@ -30,8 +33,24 @@ public class PlayerController : MonoBehaviour
 
     private void MovePlayer()
     {
-        Vector3 movementDelta = new Vector3(movementVector2D.x, 0, movementVector2D.y) * speed * Time.deltaTime; // Still multiply by deltaTime so that speed is applied accurately in m/s
-        rigidBody.MovePosition(transform.position + movementDelta);
+        if (movementVector2D != Vector2.zero)
+        {
+            animator.SetBool("IsMoving", true);
+
+            // Find movement direction and rotate player towards that direction
+            Vector3 movementDirection = new Vector3(movementVector2D.x, 0, movementVector2D.y);
+            movementDirection.Normalize();
+            Quaternion desiredRotation = Quaternion.LookRotation(movementDirection, Vector3.up);
+            transform.rotation = Quaternion.RotateTowards(transform.rotation, desiredRotation, rotationSpeed * Time.deltaTime);
+
+            // Move player
+            Vector3 movementDelta = movementDirection * speed * Time.deltaTime; // Multiply by deltaTime so that speed is applied in m/s and not meters per frame
+            rigidBody.MovePosition(transform.position + movementDelta);
+        }
+        else
+        {
+            animator.SetBool("IsMoving", false);
+        }
     }
 
 
@@ -39,6 +58,12 @@ public class PlayerController : MonoBehaviour
     void FixedUpdate()
     {
         if (GameManager.Instance.GameState == GameManager.GameStates.Play)
+        {
             MovePlayer();
+        }
+        else
+        {
+            animator.SetBool("IsMoving", false); // Makes sure player animation resets to idle upon leaving the "Play" state
+        }
     }
 }
