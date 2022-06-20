@@ -10,10 +10,17 @@ public class PlayerController : MonoBehaviour
     [SerializeField] [Tooltip("Speed in m/s")] [Range(1f,10f)] private float speed;
     [SerializeField] [Tooltip("How quickly the character rotates when receiving a new movement direction")] private float rotationSpeed;
 
+    [Header("Attack Settings")]
+    [SerializeField] [Tooltip("Cooldown between attacks in seconds")] [Range(1.0f, 5.0f)] private float attackCooldown;
+
+
     // Private variables
     private Rigidbody rigidBody;
     private Animator animator;
     private Vector2 movementVector2D;
+    private AudioSource whooshSound;
+    private bool isAttacking = false;
+    private float attackStartTime = -10.0f; // Initialize to low value so player can attack immeadiately upon starting
 
 
     // Start is called before the first frame update
@@ -21,6 +28,7 @@ public class PlayerController : MonoBehaviour
     {
         rigidBody = GetComponent<Rigidbody>();
         animator = GetComponent<Animator>();
+        whooshSound = GetComponent<AudioSource>();
     }
 
 
@@ -31,9 +39,21 @@ public class PlayerController : MonoBehaviour
     }
 
 
+    private void OnAttack()
+    {
+        if (!isAttacking && Time.time > attackStartTime + attackCooldown && GameManager.Instance.GameState == GameManager.GameStates.Play)
+        {
+            attackStartTime = Time.time;
+            isAttacking = true;
+            whooshSound.Play();
+            animator.SetBool("IsAttacking", true);
+        }
+    }
+
+
     private void MovePlayer()
     {
-        if (movementVector2D != Vector2.zero)
+        if (movementVector2D != Vector2.zero && !isAttacking)
         {
             animator.SetBool("IsMoving", true);
 
@@ -60,6 +80,15 @@ public class PlayerController : MonoBehaviour
         if (GameManager.Instance.GameState == GameManager.GameStates.Play)
         {
             MovePlayer();
+            if (isAttacking)
+            {
+                if (animator.GetCurrentAnimatorStateInfo(0).normalizedTime > 1 && !animator.IsInTransition(0)) // Find if the attack animation has finished playing
+                {
+                    isAttacking = false;
+                    animator.SetBool("IsAttacking", false);
+                }
+            }
+
         }
         else
         {
