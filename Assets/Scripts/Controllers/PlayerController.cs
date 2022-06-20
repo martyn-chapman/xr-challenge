@@ -25,6 +25,8 @@ public class PlayerController : MonoBehaviour
     private float attackStartTime = -10.0f; // Initialize to low value so player can attack immeadiately upon starting
     private bool isNearDog = false;
     private GameObject dogObject; // Reference for the Dog character, used for interactions
+    private float jumpCooldown = 2.0f;
+    private float jumpStartTime = -10.0f;
 
     public event Action HitEvent;
 
@@ -78,6 +80,16 @@ public class PlayerController : MonoBehaviour
             }
             else
                 GameManager.Instance.AudioManager.Play("Whoosh");
+        }
+    }
+
+
+    private void OnJump()
+    {
+        if (Time.time > jumpStartTime + jumpCooldown)
+        {
+            jumpStartTime = Time.time;
+            rigidBody.AddForce(new Vector3(0, 300.0f, 0));
         }
     }
 
