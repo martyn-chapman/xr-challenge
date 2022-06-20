@@ -5,14 +5,12 @@ using UnityEngine;
 public class StarCollisionHandler : MonoBehaviour
 {
     private Pickup pickup;
-    private AudioSource audioSource;
     private float destroyTimer = 3.0f;
 
 
     private void Awake()
     {
         pickup = GetComponent<Pickup>();
-        audioSource = GetComponent<AudioSource>();
     }
 
 
@@ -35,8 +33,9 @@ public class StarCollisionHandler : MonoBehaviour
 
     private void PlaySoundEffect()
     {
-        audioSource.pitch = 0.5f + (GameManager.Instance.PlayerManager.GetItemsCounter() * (0.5f / GameManager.Instance.WinCondition)); // Change this audio clip's pitch based on how many items have already been picked up (will become higher pitched as player collects more items)
-        audioSource.Play();
+        float pitch = 0.5f + (GameManager.Instance.PlayerManager.GetItemsCounter() * (0.5f / GameManager.Instance.WinCondition)); // Change this audio clip's pitch based on how many items have already been picked up (will become higher pitched as player collects more items)
+        GameManager.Instance.AudioManager.SetPitch("StarPickup", pitch);
+        GameManager.Instance.AudioManager.Play("StarPickup");
     }
 
 

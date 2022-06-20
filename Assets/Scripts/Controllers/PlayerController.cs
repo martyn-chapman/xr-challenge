@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using System;
 
 public class PlayerController : MonoBehaviour
 {
@@ -14,21 +15,37 @@ public class PlayerController : MonoBehaviour
     [SerializeField] [Tooltip("Cooldown between attacks in seconds")] [Range(1.0f, 5.0f)] private float attackCooldown;
 
 
-    // Private variables
+    // Component references
     private Rigidbody rigidBody;
     private Animator animator;
+
+    // Private variables
     private Vector2 movementVector2D;
-    private AudioSource whooshSound;
     private bool isAttacking = false;
     private float attackStartTime = -10.0f; // Initialize to low value so player can attack immeadiately upon starting
+    private bool isNearDog = false;
+    private GameObject dogObject; // Reference for the Dog character, used for interactions
+
+    public event Action HitEvent;
+
+
+    private void Awake()
+    {
+        rigidBody = GetComponent<Rigidbody>();
+        animator = GetComponent<Animator>();
+    }
 
 
     // Start is called before the first frame update
     void Start()
     {
-        rigidBody = GetComponent<Rigidbody>();
-        animator = GetComponent<Animator>();
-        whooshSound = GetComponent<AudioSource>();
+        HitEvent += GameManager.Instance.DogManager.HitResponse;
+    }
+
+
+    private void OnDisable()
+    {
+         HitEvent -= GameManager.Instance.DogManager.HitResponse;
     }
 
 
@@ -39,14 +56,28 @@ public class PlayerController : MonoBehaviour
     }
 
 
+    // Function "OnAttack" is invoked by the "Attack" Action defined in InputActions
     private void OnAttack()
     {
         if (!isAttacking && Time.time > attackStartTime + attackCooldown && GameManager.Instance.GameState == GameManager.GameStates.Play)
         {
             attackStartTime = Time.time;
             isAttacking = true;
-            whooshSound.Play();
             animator.SetBool("IsAttacking", true);
+
+            if (isNearDog)
+            {
+                float dotProduct = Vector3.Dot((dogObject.transform.position - transform.position).normalized, transform.forward);
+                if (dotProduct >= 0.5f)
+                {
+                    GameManager.Instance.AudioManager.Play("Whack");
+                    HitEvent?.Invoke();
+                }
+                else
+                    GameManager.Instance.AudioManager.Play("Whoosh");
+            }
+            else
+                GameManager.Instance.AudioManager.Play("Whoosh");
         }
     }
 
@@ -70,6 +101,25 @@ public class PlayerController : MonoBehaviour
         else
         {
             animator.SetBool("IsMoving", false);
+        }
+    }
+
+
+    private void OnTriggerEnter(Collider other)
+    {
+        if (other.CompareTag("Dog"))
+        {
+            dogObject = other.gameObject;
+            isNearDog = true;
+        }
+    }
+
+
+    private void OnTriggerExit(Collider other)
+    {
+        if (other.CompareTag("Dog"))
+        {
+            isNearDog = false;
         }
     }
 
