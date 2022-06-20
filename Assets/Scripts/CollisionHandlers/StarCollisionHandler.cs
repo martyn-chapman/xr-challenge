@@ -5,12 +5,14 @@ using UnityEngine;
 public class StarCollisionHandler : MonoBehaviour
 {
     private Pickup pickup;
+    private AudioSource audioSource;
     private float destroyTimer = 3.0f;
 
 
     private void Awake()
     {
         pickup = GetComponent<Pickup>();
+        audioSource = GetComponent<AudioSource>();
     }
 
 
@@ -31,13 +33,23 @@ public class StarCollisionHandler : MonoBehaviour
     }
 
 
+    private void PlaySoundEffect()
+    {
+        audioSource.pitch = 0.5f + (GameManager.Instance.PlayerManager.GetItemsCounter() * (0.5f / GameManager.Instance.WinCondition)); // Change this audio clip's pitch based on how many items have already been picked up (will become higher pitched as player collects more items)
+        audioSource.Play();
+    }
+
+
     private void CollisionResponse()
     {
         SubscribeToEvents();
-        pickup.GetPickedUp();
-        GameManager.Instance.PlayerManager.UpdateItemsCounter(1);
-        Destroy(gameObject, destroyTimer);
-        UnsubscribeFromEvents(); // Unsubscribe to events here when the Pickup has been set to be destroyed, as Unity can throw an error for not being able to find the GameManager instance on exit if called in OnDisable()
+        if (pickup.GetPickedUp() >= 0)
+        {
+            GameManager.Instance.PlayerManager.UpdateItemsCounter(1);
+            PlaySoundEffect();
+            Destroy(gameObject, destroyTimer);
+            UnsubscribeFromEvents(); // Unsubscribe to events here when the Pickup has been set to be destroyed, as Unity can throw an error for not being able to find the GameManager instance on exit if called in OnDisable()
+        }
     }
 
 

@@ -11,19 +11,21 @@ public class GameManager : Singleton<GameManager>
         Win
     }
     public GameStates GameState { get; private set; }
+    public int WinCondition { get; private set; }
     public event Action<GameStates> OnGameStateChanged;
 
     public PlayerManager PlayerManager { get; private set; }
     public UI_Manager UI_Manager { get; private set; }
-
-    [SerializeField] private int _winCondition;
-    public int WinCondition => _winCondition;
 
 
     protected override void Init()
     {
         PlayerManager = GetComponentInChildren<PlayerManager>();
         UI_Manager = GetComponentInChildren<UI_Manager>();
+
+        // Base the win condition on the total amount of star pickups in the level
+        GameObject[] pickups = GameObject.FindGameObjectsWithTag("StarPickup");
+        WinCondition = pickups.Length;
     }
 
 
